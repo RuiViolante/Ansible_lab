@@ -1,1 +1,23 @@
+- name: Check Playbook
+  hosts: "{{hosts}}"
+  tasks:
+  - shell: hostname
+    register: hostname
 
+  - shell: lscpu | awk 'FNR == 4 {print $2}'
+    register: cpu
+
+  - shell: free | awk 'FNR == 2 {print $2}'
+    register: ram
+  
+  - shell: lsblk | awk 'FNR == 16 {print $4}'
+    register: disk
+  
+  - shell: lsblk | awk 'FNR == 17 {print $4}'
+    register: vol
+
+  - shell: lsblk | awk 'FNR == 17 {print $7}'
+    register: mount
+
+  - debug:
+      msg: "HOSTNAME: {{hostname.stdout}} | CPU: {{cpu.stdout}} | RAM: {{ram.stdout}} | DISK_SIZE: {{disk.stdout}} | VOLUME_SIZE: {{vol.stdout}} | MOUNT_NAME: {{mount.stdout}}"
