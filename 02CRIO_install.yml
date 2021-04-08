@@ -1,0 +1,50 @@
+---
+- name: CRI-O Installation
+  hosts: "{{host_name}}"
+
+  Tasks:
+  - name: Create the .conf file to load the modules at bootup
+    copy:
+      dest: /etc/modules-load.d/crio.conf
+      content:
+        overlay
+        br_netfilter
+
+  - name: Set up required sysctl params, these persist across reboots
+    copy:
+      dest: /etc/sysctl.d/99-kubernetes-cri.conf
+      content:
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.ipv4.ip_forward                 = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+
+  - name: Add multiple repositories into the same file (1/2)
+    yum_repository:
+      name: CRI-O_1
+      description: EPEL YUM repo
+      file: CRI-O_CentOS_8_repos
+      baseurl: /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
+      gpgcheck: no
+
+  - name: Add multiple repositories into the same file (2/2)
+    yum_repository:
+      name: CRI-O_2
+      description: RPMforge YUM repo
+      file: CRI-O_CentOS_8_repos
+      baseurl: /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:1.20.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:/1.20/CentOS_8/devel:kubic:libcontainers:stable:cri-o:1.20.repo
+      enabled: no
+
+  - name: Install CRI-O
+    yum:
+      name: cri-o
+      state: present
+
+  - name: Ensure CRI-O is running
+    Systemd:
+      daemon_reload: yum
+
+  - name: Enable CRI-O
+    systemd:
+      name: crio
+      force: yes
+    

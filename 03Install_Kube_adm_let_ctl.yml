@@ -1,0 +1,44 @@
+---
+- name: Setup network/security requirements
+  hosts: "{{hosts}}"
+  
+  tasks:
+  - name: Setup iptables to correctly see bridged traffic
+    copy:
+      dest: /etc/modules-load.d/k8s.conf
+      content:
+        br_netfilter
+
+    - name: Add multiple repositories into the same file (1/2)
+      yum_repository:
+        name: CRI-O_1
+        description: Kubernetes repo
+        file: kubernetes.repo
+        baseurl: /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
+        gpgcheck: yes
+        repo_gpgcheck: yes
+        gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        exclude: kubelet kubeadm kubectl
+
+    - name: Disable SELinux
+      selinux:
+        state: disabled
+
+    - name: Install these packages - kubelet kubeadm kubectl
+    yum:
+      name: "{{ packages }}"
+      state: latest
+      disable_excludes: all
+      exclude: kubernetes
+    vars:
+      packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+  
+  - name: Enable kubelet
+    systemd:
+      name: kubelet
+      force: yes
+
+      

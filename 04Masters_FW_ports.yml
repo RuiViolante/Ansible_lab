@@ -1,0 +1,18 @@
+---
+- name: Firewall Playbook
+  hosts: "{{Materhosts}}"
+  become: yes
+  tasks:
+  - name: Ensure FirewallD is running
+    systemd:
+      name: firewalld
+      state: started
+      enabled: yes
+
+  - name: Firewall TCP Ports
+    firewalld:
+      port: "{{item}}/tcp"
+      permanent: yes
+      immediate: yes
+      state: enabled
+    loop: "{{firewall_ports}}"
