@@ -1,6 +1,6 @@
 ---
 - name: Validate requirements
-  hosts: "{{hosts}}"
+  hosts: "{{host_name}}"
   
   tasks:
   - shell: hostname
