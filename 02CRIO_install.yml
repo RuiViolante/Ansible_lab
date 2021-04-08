@@ -2,7 +2,7 @@
 - name: CRI-O Installation
   hosts: "{{host_name}}"
 
-  Tasks:
+  tasks:
   - name: Create the .conf file to load the modules at bootup
     copy:
       dest: /etc/modules-load.d/crio.conf
